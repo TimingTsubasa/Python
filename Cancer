@@ -1,0 +1,63 @@
+# Import the libraries
+import numpy as np
+import pandas as pd 
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings #to remove the warnings
+warnings.filterwarnings('ignore')
+
+# Import the dataset
+Test1_1 = pd.read_csv(r'D:\\Test-1.csv')
+print(Test1_1.head(10))
+
+# Remove the first column which is Sample Code Number
+Test1_1.drop('Sample code number', axis=1, inplace=True)
+
+X = Test1_1.iloc[:,:-1].values # get columns except for the last one. 
+print("Data of X:",X)
+Y = Test1_1.iloc[:,-1].values # get the last one column which is class.
+print("Data of Y:",Y)
+
+# We don't need to encode the dataset because the data size is similar
+
+# Spliting the dataset into training and testing set
+from sklearn.model_selection import train_test_split
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size = 0.2, random_state = 0)
+
+# Feature Scaling--tandardization
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_train_stand = scaler.fit_transform(X_train)
+X_test_stand = scaler.fit_transform(X_test)
+X_train_stand = pd.DataFrame(X_train_stand)
+X_test_stand = pd.DataFrame(X_test_stand)
+print("Standized X train:", X_train_stand.head(10))
+print("Standized X test:",X_test_stand.head(10))
+
+# Training the Logistic Regression model on the Standized Training Set
+from sklearn.linear_model import LogisticRegression
+modelLogistic = LogisticRegression(random_state = 0)
+modelLogistic.fit(X_train_stand, Y_train)
+#print the regression coefficients
+print("The intercept b0= ", modelLogistic.intercept_)
+print("The coefficient b1= ", modelLogistic.coef_)  
+
+y_test_pred = modelLogistic.predict(X_test_stand)
+print(y_test_pred)
+print(np.concatenate((y_test_pred.reshape(len(y_test_pred),1),Y_test.reshape(len(Y_test),1)),1))
+
+# Confusion Matrix
+from sklearn.metrics import confusion_matrix, accuracy_score
+CM = confusion_matrix(Y_test, y_test_pred)
+print(CM)
+ax = sns.heatmap(CM,annot=True,cmap='BuPu')
+ax.set_title('Confusion Matrix for Class');
+ax.set_xlabel('Prediction made for Class')
+ax.set_ylabel('Actual status of class');
+## Ticket labels – List must be in alphabetical order
+ax.xaxis.set_ticklabels(['2','4'])
+ax.yaxis.set_ticklabels(['2','4'])
+## Display the visualization of the Confusion Matrix.
+plt.show()
+
+print(accuracy_score(Y_test, y_test_pred))
